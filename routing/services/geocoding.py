@@ -376,14 +376,14 @@ class GeocodingRouter:
         # Google Maps always requires a key
         self.has_api_key = bool(self.google.api_key)
 
-    def get_cached(self, query: str) -> Optional[Tuple[Optional[Point], Dict[str, Any]]]:
-        return self.cache.get(query)
+    def get_cached(self, provider_name: str, query: str) -> Optional[Tuple[Optional[Point], Dict[str, Any]]]:
+        return self.cache.get(f"{provider_name}:{query}")
 
-    def set_cache(self, query: str, result: Tuple[Optional[Point], Dict[str, Any]]):
-        self.cache[query] = result
+    def set_cache(self, provider_name: str, query: str, result: Tuple[Optional[Point], Dict[str, Any]]):
+        self.cache[f"{provider_name}:{query}"] = result
 
     def _try(self, provider: BaseGeocodingProvider, query: str, debug_list: List[Dict]) -> Optional[Point]:
-        cached = self.get_cached(query)
+        cached = self.get_cached(provider.name, query)
         if cached:
             loc, meta = cached
             debug_list.append({
@@ -394,7 +394,7 @@ class GeocodingRouter:
             return loc
 
         loc, meta = provider.geocode(query)
-        self.set_cache(query, (loc, meta))
+        self.set_cache(provider.name, query, (loc, meta))
         
         debug_list.append({
             "label": f"{provider.name}_query",

@@ -6,25 +6,21 @@ from routing.services.geocoding import GeocodingRouter, AddrType
 @pytest.mark.django_db
 def test_geocoding_router_osm_fallback():
     """Test that OSM is used when Census/Google fail or are skipped for city/state."""
-    query = "Miami, FL"
+    query = "Unique City, ST" # Use unique query to avoid any potential cache issues
     
-    # We patch the providers and THEN instantiate the router
-    with unittest.mock.patch('routing.services.geocoding.CensusProvider.geocode') as mock_census:
-        mock_census.return_value = (None, {})
-        
-        with unittest.mock.patch('routing.services.geocoding.GoogleMapsProvider.geocode') as mock_google:
-            mock_google.return_value = (None, {"error": "Missing API Key"})
-            
-            with unittest.mock.patch('routing.services.geocoding.OSMProvider.geocode') as mock_osm:
-                mock_osm.return_value = (Point(-80.1918, 25.7617), {"provider": "osm"})
+    # Patch the classes at the module level
+    with unittest.mock.patch('routing.services.geocoding.CensusProvider.geocode', return_value=(None, {})):
+        with unittest.mock.patch('routing.services.geocoding.GoogleMapsProvider.geocode', return_value=(None, {"error": "no key"})):
+            with unittest.mock.patch('routing.services.geocoding.OSMProvider.geocode', return_value=(Point(-80.0, 25.0), {"provider": "osm"})):
                 
-                # Instantiate inside the patch context
                 router = GeocodingRouter(provider_priority="smart")
+                print(f"OSM GEOCODE TYPE: {type(router.osm.geocode)}")
+                print(f"OSM GEOCODE MOCKED: {isinstance(router.osm.geocode, unittest.mock.Mock)}")
                 
                 loc, debug = router.geocode_string(query)
                 
                 assert loc is not None
-                assert loc.x == -80.1918
+                assert loc.x == -80.0
                 assert any(a['label'] == 'osm_query' for a in debug['attempts'])
 
 @pytest.mark.django_db

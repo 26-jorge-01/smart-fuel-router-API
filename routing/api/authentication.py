@@ -2,8 +2,11 @@ import os
 from rest_framework import authentication, exceptions
 
 class SimpleUser:
-    pk = None
+    id = 1
+    pk = 1
+    username = "api_user"
     is_authenticated = True
+    is_active = True
     is_anonymous = False
 
 class HeaderAPIKeyAuthentication(authentication.BaseAuthentication):
