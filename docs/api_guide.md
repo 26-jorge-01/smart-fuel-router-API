@@ -2,6 +2,14 @@
 
 Welcome to the Fuel Routing API. This guide will help you integrate and consume the API for your logistics or navigation applications.
 
+## Authentication
+
+This API requires an API Key for all requests. The key must be sent in the `X-API-Key` header.
+
+**Header**: `X-API-Key: <your_api_key>`
+
+---
+
 ## Endpoints
 
 ### Post `api/v1/route-plan/`
@@ -47,14 +55,18 @@ The response returns a serialized travel plan:
 }
 ```
 
-## Interactive Documentation
-A live Swagger UI is available at:
-[http://localhost:8000/api/docs/](http://localhost:8000/api/docs/)
+## 💡 Real-World Scenarios
 
-Here you can test the API directly from your browser and view the full OpenAPI schema.
+### Scenario: The NYC to Miami Express
+A carrier needs to plan a 1,300-mile route. Without an optimizer, a driver might fill up in NYC (expensive) and halfway through Virginia (expensive). 
 
-## Error Handling
-The API uses standard HTTP status codes:
-- `200`: Success.
-- `400`: Bad Request (Invalid parameters or geocoding failure).
-- `500`: Internal Server Error.
+**The Optimized Solution**:
+Using the API with `corridor_miles: 15`, the system identifies a massive price drop in **South Carolina**. The API instructs the driver to buy only enough fuel to reach SC, and then "Fill Up" at the local minimum before finishing the trip.
+
+---
+
+## Error Handling Philosophy
+We believe an API should be **instructive**, not just reactive.
+
+- **Geocoding Failures**: If the API can't find your address, the error message tells you *why* (e.g., "Census API failed and Google Key is missing") and suggests how to fix it.
+- **Unreachable Routes**: If the distance between stations exceeds the vehicle range (500 miles), the API returns a `422 Unprocessable Entity` with a list of missing coverage areas.

@@ -1,33 +1,55 @@
-# Technical Architecture
+# Technical Architecture Deep Dive
 
-This document provides a deep dive into the engineering decisions and algorithms behind the Fuel Routing API.
+This document explains the "How" and "Why" behind the engineering choices of the Smart Fuel Router.
 
-## 1. Geocoding Strategy: Smart Router
-One of the main challenges was resolving varied address formats from a legacy CSV (highway intersections, mile markers, and postal addresses) without incurring massive costs or suffering from API limitations.
+## 1. The Geocoding Resilience Layer
+A major challenge was the variety of address formats in the input data (e.g., "I-95 & US-1" vs "123 Main St"). 
 
-### Multi-Provider Approach
-The system uses a **weighted strategy** across three providers:
-1.  **US Census Bureau**: A free service used for standard postal addresses. It is extremely reliable for residential/commercial street addresses but fails on highway references.
-2.  **OpenStreetMap (Nominatim)**: Used as a fallback for city/state queries (e.g., "Miami, FL") where the Census API requires a specific street.
-3.  **Google Maps Platform**: The premium option, prioritized for complex highway intersections (e.g., "I-95 & US-1") where standard geocoders often fail.
+### Decision Strategy
+We implemented a **Multi-Tiered Geocoding Router**. Instead of relying on a single expensive provider, the system analyzes the query string and routes it through the most effective and cost-efficient provider.
 
-### Classification Engine
-Before geocoding, the `GeocodingRouter` classifies the input string to decide which provider and query format to use. This minimizes "junk" calls and maximizes accuracy.
+```mermaid
+graph TD
+    Input[Address Input] --> Classify{Classification}
+    Classify -- "Highway/Intersection" --> Google[Google Maps Provider]
+    Classify -- "Postal Address" --> Census[US Census Provider]
+    Classify -- "City/State/Generic" --> OSM[OSM Fallback]
+    
+    Google -- "Fail/Missing Key" --> OSM
+    Census -- "Fail" --> OSM
+    OSM -- "Success" --> Result[Validated Coordinates]
+    OSM -- "Fail" --> Error[Unresolved Record]
+```
 
-## 2. Fuel Optimization: Greedy Algorithm
-The core problem is: *How do we reach the destination at the lowest cost without running out of fuel?*
+## 2. Fuel Optimization: Modified Greedy Algorithm
+The goal is to complete a route (e.g., 2,000 miles) at minimum cost with a vehicle range of 500 miles.
 
-### Algorithm Logic
-We implemented an optimized greedy approach:
-1.  **Safety First**: We only consider "safe" stations—those from which it is mathematically possible to reach either the destination or at least one other station.
-2.  **Price Hunting**: At each stop, the vehicle looks ahead within its remaining range.
-3.  **Dynamic Purchasing**: 
-    - If a **cheaper** station is reachable ahead, we buy *only enough* fuel to reach that cheaper station.
-    - If no cheaper station is reachable, we fill up the tank to maximize the distance we can travel at the current "local minimum" price.
+### Why not Dynamic Programming?
+While this is a shortest-path problem variant, the state space (discrete fuel levels) and the high density of stations make a full DP approach computationally expensive for a real-time API.
 
-### Why Greedy?
-While this problem can be solved with dynamic programming, the greedy approach is more performant for typical long-haul routes (2,000+ miles) and handles the "corridor search" constraints efficiently with O(N) time complexity.
+### Implementation: The Look-Ahead Strategy
+Our Modified Greedy Algorithm works as follows:
+1.  **Safe Horizon**: From the current location, identify all reachable stations within the 500-mile range.
+2.  **Cheaper Search**: Look for any station within that range that is **cheaper** than the current one.
+3.  **Variable Purchase**: 
+    - If a cheaper station exists: Buy *only* enough fuel to reach that cheaper station.
+    - If no cheaper station exists: **Fill up** to maximize the distance traveled at the current "local minimum" price.
 
-## 3. Data Infrastructure
-- **PostGIS**: Used for geographic queries. The fuel station search uses `ST_DWithin` on the route's linestring, combined with GIST indexing for sub-second performance even with thousands of stations.
-- **Redis Cache**: Both OSRM routes and geocoding results are cached to ensure that repeated queries (common in user sessions) are instantaneous.
+### Performance Analysis
+- **Time Complexity**: $O(N \log M)$ where $N$ is route length and $M$ is station density.
+- **Reliability**: Guarantees a valid path if one exists, unlike simple heuristic models.
+
+## 3. Spatial Data Infrastructure
+We chose **PostGIS** over standard relational databases for its native support for GIST indexing. This allows us to perform "Corridor Searches" (finding stations within $X$ miles of a 2,000-mile line) in milliseconds.
+
+```sql
+-- Conceptual query used in the backend
+SELECT name, price, geom 
+FROM fuel_stations 
+WHERE ST_DWithin(geom, ST_GeomFromText('LINESTRING(...)'), corridor_radius_meters)
+ORDER BY price ASC;
+```
+
+## 4. Engineering Trade-offs & Security
+- **Auth Strategy**: We chose Header-based API Key auth for its simplicity and ease of integration for mobile/external systems.
+- **Scalability**: The system is fully containerized, allowing for HORIZONTAL scaling of the OSRM routing engine independently of the Django API.

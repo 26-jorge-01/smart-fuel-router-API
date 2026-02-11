@@ -1,40 +1,36 @@
-# 🚚 Smart Fuel Router API
+# 🚚 Smart Fuel Router: A Logistics Optimization Case Study
 
+[![CI](https://github.com/your-username/spotter/actions/workflows/ci.yml/badge.svg)](https://github.com/your-username/spotter/actions)
 [![Python](https://img.shields.io/badge/Python-3.12-blue?style=flat-square&logo=python)](https://www.python.org/)
 [![Django](https://img.shields.io/badge/Django-5.0-green?style=flat-square&logo=django)](https://www.djangoproject.com/)
 [![PostGIS](https://img.shields.io/badge/PostGIS-Enabled-blue?style=flat-square&logo=postgresql)](https://postgis.net/)
-[![Redis](https://img.shields.io/badge/Redis-Caching-red?style=flat-square&logo=redis)](https://redis.io/)
 
-A high-performance, professional-grade API designed to optimize fuel stops for long-haul logistics in the United States. This project demonstrates complex algorithm implementation (Greedy Optimization), multi-provider geocoding strategies, and scalable system architecture.
+## 📈 The Business Problem
+In the long-haul trucking industry, fuel accounts for nearly **30-40% of total operating costs**. A fleet traveling from Miami to New York (approx. 1,300 miles) can see price fluctuations of over **$0.50 per gallon** across state lines. 
 
----
-
-## 🚀 Key Features
-
-- **Optimal Fuel Planning**: Uses a customized Greedy Algorithm to find the cheapest fuel stops without risking range exhaustion.
-- **Smart Geocoding Router**: A resilient geocoding layer that intelligently switches between **Google Maps**, **US Census Bureau**, and **OpenStreetMap (Nominatim)** based on query type and availability.
-- **High-Performance Spatial Search**: Leverages **PostGIS** `ST_DWithin` and GIST indexing for sub-second corridor searches along thousand-mile routes.
-- **Enterprise Ready**: Full Docker orchestration, professional testing suite, and Redis-backed performance caching.
+**This project solves three critical business questions:**
+1.  **Cost Optimization**: *Where should a driver stop to ensure they always pay the lowest possible price without risking fuel exhaustion?*
+2.  **Operational Efficiency**: *How can we automate the route planning process while handling "dirty" legacy data from hundreds of different fuel providers?*
+3.  **Data Resilience**: *How do we maintain high-accuracy geocoding (finding stations on remote highways) while minimizing expensive API costs?*
 
 ---
 
-## 🛠️ Tech Stack
+## 🏗️ The Engineering Challenge
+Building a fuel optimizer isn't just about finding the cheapest station; it's about navigating the trade-offs between **graph theory** (route planning), **spatial indexing** (corridor search), and **resource management** (API safety).
 
-- **Backend**: Python 3.12, Django, Django REST Framework.
-- **Database**: PostgreSQL with PostGIS extensions.
-- **Navigation**: OSRM (Open Source Routing Machine).
-- **Caching**: Redis.
-- **Infrastructure**: Docker & Docker Compose.
+### Core Technical Pillars
+- **[Algorithm Choice]**: Implemented a modified **Greedy Optimization** algorithm to handle real-time fuel decisions.
+- **[Smart Geocoding]**: Created a resilient, multi-tier geocoding router that solves the "highway intersection" problem.
+- **[Spatial Intelligence]**: Leverages **PostGIS** for high-performance geometric queries along complex route lines.
 
 ---
 
-## 📖 Documentation
+## 📖 Case Study Documentation
+For a deep dive into the engineering and product decisions, explore:
 
-We provide comprehensive guides for both developers and API consumers:
-
-- 🏗️ **[Technical Architecture](docs/architecture.md)**: Deep dive into the algorithms, geocoding logic, and "why" behind the engineering decisions.
-- 🔌 **[API Consumer Guide](docs/api_guide.md)**: Quick-start guide for integrating the API into your applications.
-- ✅ **[Validation Guide](validation_guide.md)**: Step-by-step instructions for verifying system correctness.
+- 🏗️ **[Technical Architecture Deep Dive](docs/architecture.md)**: Diagrams, design patterns, and algorithmic trade-offs (Greedy vs. DP).
+- 🔌 **[API Consumer Guide](docs/api_guide.md)**: Real-world use cases and integration instructions.
+- 🚀 **[Product Vision](docs/vision.md)**: The "Next Step" roadmap—from MVP to Enterprise scale.
 
 ---
 
