@@ -1,0 +1,15 @@
+Django>=5.0,<5.1
+djangorestframework>=3.14
+psycopg2-binary>=2.9
+redis>=5.0
+django-redis>=5.4
+requests>=2.31
+polyline>=2.0
+drf-spectacular>=0.27
+urllib3>=2.0
+pytest>=7.4
+pytest-django>=4.7
+dj-database-url>=3.1.0
+black
+flake8
+dotenv
