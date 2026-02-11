@@ -1,6 +1,6 @@
 # 🚚 Smart Fuel Router: A Logistics Optimization Case Study
 
-[![CI](https://github.com/your-username/spotter/actions/workflows/ci.yml/badge.svg)](https://github.com/your-username/spotter/actions)
+[![CI](https://github.com/26-jorge-01/smart-fuel-router-API/actions/workflows/ci.yml/badge.svg)](https://github.com/26-jorge-01/smart-fuel-router-API/actions/)
 [![Python](https://img.shields.io/badge/Python-3.12-blue?style=flat-square&logo=python)](https://www.python.org/)
 [![Django](https://img.shields.io/badge/Django-5.0-green?style=flat-square&logo=django)](https://www.djangoproject.com/)
 [![PostGIS](https://img.shields.io/badge/PostGIS-Enabled-blue?style=flat-square&logo=postgresql)](https://postgis.net/)
